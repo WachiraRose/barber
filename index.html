@@ -440,7 +440,7 @@
       color: #5a478b;
     }
     td.service-price::before {
-      content: "Price (KSh)";
+      content: "Price ($)";
       display: block;
       font-weight: 700;
       margin-bottom: 4px;
@@ -526,6 +526,12 @@
     color: transparent;
   }
 
+  /* Hide print/download buttons when printing */
+  @media print {
+    #actions {
+      display: none !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -552,53 +558,32 @@
 <div id="receiptContainer" role="main" tabindex="-1" aria-label="Receipt details">
   <header id="receiptHeader">
     <h2 id="shopName" contenteditable="true" aria-label="Shop Name" spellcheck="false">Charles Git Barber</h2>
-    <!--p id="shopAddress" contenteditable="true" aria-label="Shop Address" spellcheck="false">123 Lilac Street, Nairobi</p-->
-    <p id="shopContact" contenteditable="true" aria-label="Shop Phone Number" spellcheck="false">Phone: +1 314 365 7077| Email: royalpettyerrandsrv@gmail.com</p>
+    <!--p id="shopAddress" contenteditable="true" aria-label="Shop Address" spellcheck="false">Nairobi, Kenya</p-->
+    <p id="shopAddress" contenteditable="true" aria-label="Shop Address" spellcheck="false">123 Barber St, Nairobi</p>
+    <p id="shopContact" contenteditable="true" aria-label="Shop Contact" spellcheck="false">Phone: +254 712 345 678</p>
   </header>
 
-  <section id="receiptMeta" aria-label="Receipt Information">
-    <label for="receiptNumber">Receipt No.</label>
-    <input type="text" id="receiptNumber" value="000001" aria-required="true" />
+  <section id="receiptMeta">
+    <label for="receiptNumber">Receipt #</label>
+    <input id="receiptNumber" type="text" placeholder="0000" aria-describedby="receiptNumberDesc" />
+    <span id="receiptNumberDesc" class="sr-only">Enter receipt number</span>
 
     <label for="receiptDate">Date</label>
-    <input type="date" id="receiptDate" aria-required="true" />
+    <input id="receiptDate" type="date" aria-describedby="receiptDateDesc" />
+    <span id="receiptDateDesc" class="sr-only">Select receipt date</span>
 
     <label for="cashierName">Cashier</label>
-    <input type="text" id="cashierName" placeholder="Cashier Name" aria-required="true" />
+    <input id="cashierName" type="text" placeholder="Cashier name" aria-describedby="cashierNameDesc" />
+    <span id="cashierNameDesc" class="sr-only">Enter cashier name</span>
   </section>
 
-  <section id="clientInfo" aria-label="Client Information">
-    <input
-      type="text"
-      id="clientName"
-      placeholder="Client Name"
-      autocomplete="off"
-      aria-required="true"
-      spellcheck="false"
-    />
-    <input
-      type="email"
-      id="clientEmail"
-      placeholder="Client Email"
-      autocomplete="off"
-      aria-required="true"
-      spellcheck="false"
-      pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
-      title="Please enter a valid email address"
-    />
-    <input
-      type="tel"
-      id="clientPhone"
-      placeholder="Client Phone"
-      autocomplete="off"
-      aria-required="true"
-      spellcheck="false"
-      pattern="^\+?[0-9\s\-]{7,15}$"
-      title="Please enter a valid phone number"
-    />
+  <section id="clientInfo">
+    <input id="clientName" type="text" placeholder="Client Name" aria-label="Client Name" />
+    <input id="clientEmail" type="email" placeholder="Client Email" aria-label="Client Email" />
+    <input id="clientPhone" type="tel" placeholder="Client Phone" aria-label="Client Phone" />
   </section>
 
-  <table aria-label="Services rendered">
+  <table aria-label="Services table" role="table">
     <thead>
       <tr>
         <th scope="col">Service</th>
@@ -607,79 +592,172 @@
         <th scope="col">Remove</th>
       </tr>
     </thead>
-    <tbody id="servicesBody">
-      <tr>
-        <td class="service-name"><input type="text" placeholder="Service description" aria-label="Service description" /></td>
-        <td class="service-qty"><input type="number" min="1" value="1" aria-label="Quantity" /></td>
-        <td class="service-price"><input type="number" min="0" step="0.01" value="0.00" aria-label="Price" /></td>
-        <td class="remove-btn"><button class="remove-row-btn" aria-label="Remove service row">&times;</button></td>
-      </tr>
+    <tbody id="servicesBody" role="rowgroup">
+      <!-- Service rows go here -->
     </tbody>
   </table>
 
-  <button id="addServiceBtn" aria-label="Add service row">+ Add Service</button>
+  <button id="addServiceBtn" aria-label="Add new service">+ Add Service</button>
 
   <div id="totalSection" aria-live="polite" aria-atomic="true">Total: $ 0.00</div>
 
   <div id="actions">
-    <button id="printBtn" aria-label="Print Receipt">Print Receipt</button>
-    <button id="downloadPdfBtn" aria-label="Download Receipt as PDF">Download PDF</button>
+    <button id="printBtn" type="button">Print</button>
+    <button id="downloadPdfBtn" type="button">Download PDF</button>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script>
-  (function(){
-    const ACCESS_PASSWORD = "charles123"; // Hardcoded password
+  (() => {
+    const correctPassword = 'kutchee';  // Access password
 
     const accessScreen = document.getElementById('accessScreen');
-    const receiptContainer = document.getElementById('receiptContainer');
     const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
     const accessBtn = document.getElementById('accessBtn');
     const errorMsg = document.getElementById('errorMsg');
-    const togglePassword = document.getElementById('togglePassword');
+
+    const receiptContainer = document.getElementById('receiptContainer');
+
+    const receiptNumberInput = document.getElementById('receiptNumber');
+    const receiptDateInput = document.getElementById('receiptDate');
+    const cashierNameInput = document.getElementById('cashierName');
+
+    const clientNameInput = document.getElementById('clientName');
+    const clientEmailInput = document.getElementById('clientEmail');
+    const clientPhoneInput = document.getElementById('clientPhone');
+
+    const servicesBody = document.getElementById('servicesBody');
+    const addServiceBtn = document.getElementById('addServiceBtn');
+    const totalSection = document.getElementById('totalSection');
+
+    const printBtn = document.getElementById('printBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+    const actions = document.getElementById('actions');
 
     // Toggle password visibility
     togglePassword.addEventListener('click', () => {
-      const type = passwordInput.type === 'password' ? 'text' : 'password';
-      passwordInput.type = type;
-      togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
+      if(passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        togglePassword.textContent = '🙈';
+      } else {
+        passwordInput.type = 'password';
+        togglePassword.textContent = '👁️';
+      }
       passwordInput.focus();
     });
-    togglePassword.addEventListener('keydown', e => {
+    togglePassword.addEventListener('keydown', (e) => {
       if(e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         togglePassword.click();
       }
     });
 
-    // Submit password
-    accessBtn.addEventListener('click', () => {
-      const val = passwordInput.value.trim();
-      if(val === ACCESS_PASSWORD){
-        errorMsg.textContent = "";
-        accessScreen.style.display = "none";
-        receiptContainer.style.display = "block";
+    // Access button click or enter key on password
+    function checkPassword() {
+      if(passwordInput.value.trim() === correctPassword) {
+        accessScreen.style.display = 'none';
+        receiptContainer.style.display = 'block';
         receiptContainer.focus();
+        errorMsg.textContent = '';
+        passwordInput.value = '';
+        // Set receipt date to today by default
+        if(!receiptDateInput.value) {
+          const today = new Date().toISOString().split('T')[0];
+          receiptDateInput.value = today;
+        }
       } else {
-        errorMsg.textContent = "Wrong password, please try again.";
-        passwordInput.value = "";
-        passwordInput.focus();
+        errorMsg.textContent = 'Incorrect password. Please try again.';
+        passwordInput.select();
+      }
+    }
+
+    accessBtn.addEventListener('click', checkPassword);
+    passwordInput.addEventListener('keydown', e => {
+      if(e.key === 'Enter') {
+        e.preventDefault();
+        checkPassword();
       }
     });
 
-    passwordInput.addEventListener("keydown", e => {
-      if(e.key === "Enter"){
-        accessBtn.click();
-      }
+    // Add a new service row
+    function addServiceRow(name = '', qty = 0, price = 0) {
+      const tr = document.createElement('tr');
+
+      // Service name cell
+      const serviceTd = document.createElement('td');
+      serviceTd.classList.add('service-name');
+      const serviceInput = document.createElement('input');
+      serviceInput.type = 'text';
+      serviceInput.placeholder = 'Service';
+      serviceInput.value = name;
+      serviceInput.setAttribute('aria-label', 'Service name');
+      serviceInput.spellcheck = false;
+      serviceTd.appendChild(serviceInput);
+
+      // Quantity cell
+      const qtyTd = document.createElement('td');
+      qtyTd.classList.add('service-qty');
+      const qtyInput = document.createElement('input');
+      qtyInput.type = 'number';
+      qtyInput.min = '0';
+      qtyInput.step = 'any';
+      qtyInput.value = qty;
+      qtyInput.setAttribute('aria-label', 'Quantity');
+      qtyTd.appendChild(qtyInput);
+
+      // Price cell
+      const priceTd = document.createElement('td');
+      priceTd.classList.add('service-price');
+      const priceInput = document.createElement('input');
+      priceInput.type = 'number';
+      priceInput.min = '0';
+      priceInput.step = 'any';
+      priceInput.value = price;
+      priceInput.setAttribute('aria-label', 'Price in dollars');
+      priceTd.appendChild(priceInput);
+
+      // Remove button cell
+      const removeTd = document.createElement('td');
+      removeTd.classList.add('remove-btn');
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.classList.add('remove-row-btn');
+      removeBtn.setAttribute('aria-label', 'Remove service');
+      removeBtn.textContent = '×';
+      removeBtn.addEventListener('click', () => {
+        tr.remove();
+        updateTotal();
+      });
+      removeTd.appendChild(removeBtn);
+
+      tr.appendChild(serviceTd);
+      tr.appendChild(qtyTd);
+      tr.appendChild(priceTd);
+      tr.appendChild(removeTd);
+
+      // Update total on input changes
+      [qtyInput, priceInput].forEach(input => {
+        input.addEventListener('input', () => {
+          updateTotal();
+        });
+      });
+      serviceInput.addEventListener('input', () => {
+        // Just for better UX; no total update needed here
+      });
+
+      servicesBody.appendChild(tr);
+      updateTotal();
+    }
+
+    addServiceBtn.addEventListener('click', () => {
+      addServiceRow('', 0, 0);
     });
 
-    // Services Table Logic
-    const servicesBody = document.getElementById('servicesBody');
-    const addServiceBtn = document.getElementById('addServiceBtn');
-    const totalSection = document.getElementById('totalSection');
+    // Initialize with one empty row
+    addServiceRow();
 
+    // Calculate and update total price
     function updateTotal() {
       let total = 0;
       servicesBody.querySelectorAll('tr').forEach(row => {
@@ -689,157 +767,116 @@
         let qty = parseFloat(qtyInput.value);
         let price = parseFloat(priceInput.value);
 
-        if(isNaN(qty) || qty < 0) qty = 0;
-        if(isNaN(price) || price < 0) price = 0;
+        if (isNaN(qty) || qty < 0) qty = 0;
+        if (isNaN(price) || price < 0) price = 0;
 
         total += qty * price;
       });
-      totalSection.textContent = `Total: KSh ${total.toFixed(2)}`;
+      totalSection.textContent = `Total: $ ${total.toFixed(2)}`;
     }
 
-    // Add row
-    addServiceBtn.addEventListener('click', () => {
-      const newRow = document.createElement('tr');
-      newRow.innerHTML = `
-        <td class="service-name"><input type="text" placeholder="Service description" aria-label="Service description" /></td>
-        <td class="service-qty"><input type="number" min="1" value="1" aria-label="Quantity" /></td>
-        <td class="service-price"><input type="number" min="0" step="0.01" value="0.00" aria-label="Price" /></td>
-        <td class="remove-btn"><button class="remove-row-btn" aria-label="Remove service row">&times;</button></td>
-      `;
-      servicesBody.appendChild(newRow);
-      addListenersToRow(newRow);
-      updateTotal();
-    });
-
-    function addListenersToRow(row){
-      const qtyInput = row.querySelector('.service-qty input');
-      const priceInput = row.querySelector('.service-price input');
-      const removeBtn = row.querySelector('.remove-row-btn');
-
-      qtyInput.addEventListener('input', updateTotal);
-      priceInput.addEventListener('input', updateTotal);
-
-      removeBtn.addEventListener('click', () => {
-        if(servicesBody.rows.length > 1){
-          row.remove();
-          updateTotal();
-        }
-      });
-    }
-
-    // Add listeners to initial row
-    servicesBody.querySelectorAll('tr').forEach(row => addListenersToRow(row));
-    updateTotal();
-
-    // PRINT FUNCTIONALITY
-    document.getElementById('printBtn').addEventListener('click', () => {
+    // Print button action
+    printBtn.addEventListener('click', () => {
       window.print();
     });
 
-    // PDF Download functionality using jsPDF
-    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
-      import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js').then(({ jsPDF }) => {
-        const doc = new jsPDF.jsPDF({
-          unit: 'pt',
-          format: 'a4',
-        });
+    // Download PDF button action
+    downloadPdfBtn.addEventListener('click', () => {
+      actions.style.display = 'none'; // Hide buttons during PDF generation
 
-        const leftMargin = 40;
-        let y = 40;
-        const lineHeight = 18;
+      import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js').then(({ jsPDF }) => {
+        const doc = new jsPDF.jsPDF();
+
+        const leftMargin = 15;
+        let y = 20;
+        const lineHeight = 10;
         const pageWidth = doc.internal.pageSize.getWidth();
 
-        function addText(text, fontSize = 12, fontStyle = 'normal', align='left', offsetX=leftMargin) {
-          doc.setFontSize(fontSize);
-          doc.setFont(undefined, fontStyle);
-          let x = offsetX;
-          if(align === 'center'){
-            const textWidth = doc.getTextWidth(text);
-            x = (pageWidth - textWidth)/2;
-          }
-          doc.text(text, x, y);
-          y += lineHeight;
-        }
-
-        // Header
         const shopName = document.getElementById('shopName').textContent.trim();
         const shopAddress = document.getElementById('shopAddress').textContent.trim();
         const shopContact = document.getElementById('shopContact').textContent.trim();
+        const receiptNumber = receiptNumberInput.value.trim();
+        const receiptDate = receiptDateInput.value;
+        const cashierName = cashierNameInput.value.trim();
 
-        addText(shopName, 22, 'bold', 'center');
-        addText(shopAddress, 12, 'normal', 'center');
-        addText(shopContact, 12, 'normal', 'center');
+        const clientName = clientNameInput.value.trim();
+        const clientEmail = clientEmailInput.value.trim();
+        const clientPhone = clientPhoneInput.value.trim();
 
-        y += 10;
+        // Header
+        doc.setFont('Poppins', 'bold');
+        doc.setFontSize(20);
+        doc.text(shopName, leftMargin, y);
+        y += lineHeight;
+        doc.setFontSize(12);
+        doc.setFont('Poppins', 'normal');
+        doc.text(shopAddress, leftMargin, y);
+        y += lineHeight;
+        doc.text(shopContact, leftMargin, y);
+        y += lineHeight * 1.5;
 
         // Receipt meta
-        const receiptNumber = document.getElementById('receiptNumber').value.trim();
-        const receiptDate = document.getElementById('receiptDate').value;
-        const cashierName = document.getElementById('cashierName').value.trim();
-
-        addText(`Receipt No: ${receiptNumber}`, 12, 'bold');
-        addText(`Date: ${receiptDate}`, 12, 'bold');
-        addText(`Cashier: ${cashierName}`, 12, 'bold');
-
-        y += 10;
+        doc.setFontSize(14);
+        doc.setFont('Poppins', 'bold');
+        if(receiptNumber) doc.text(`Receipt #: ${receiptNumber}`, leftMargin, y);
+        if(receiptDate) doc.text(`Date: ${receiptDate}`, pageWidth / 2 + 10, y);
+        if(cashierName) doc.text(`Cashier: ${cashierName}`, leftMargin, y + lineHeight);
+        y += lineHeight * 2.5;
 
         // Client info
-        const clientName = document.getElementById('clientName').value.trim();
-        const clientEmail = document.getElementById('clientEmail').value.trim();
-        const clientPhone = document.getElementById('clientPhone').value.trim();
+        doc.setFontSize(12);
+        doc.setFont('Poppins', 'normal');
+        if(clientName) doc.text(`Client Name: ${clientName}`, leftMargin, y);
+        y += lineHeight;
+        if(clientEmail) doc.text(`Client Email: ${clientEmail}`, leftMargin, y);
+        y += lineHeight;
+        if(clientPhone) doc.text(`Client Phone: ${clientPhone}`, leftMargin, y);
+        y += lineHeight * 1.5;
 
-        addText(`Client Name: ${clientName}`, 12);
-        addText(`Client Email: ${clientEmail}`, 12);
-        addText(`Client Phone: ${clientPhone}`, 12);
-
-        y += 15;
-
-        // Services Table Header
-        doc.setDrawColor(110);
-        doc.setFillColor(74, 71, 163);
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.rect(leftMargin - 5, y - lineHeight + 2, pageWidth - 2*leftMargin + 10, lineHeight, 'F');
+        // Table header
+        doc.setFont('Poppins', 'bold');
         doc.text('Service', leftMargin, y);
-        doc.text('Qty', pageWidth - leftMargin - 100, y);
-        doc.text('Price', pageWidth - leftMargin - 50, y);
-        doc.setTextColor(0, 0, 0);
+        doc.text('Qty', pageWidth / 2 - 15, y);
+        doc.text('Price ($)', pageWidth - leftMargin - 50, y, {align: 'right'});
         y += lineHeight;
 
-        // Services rows
+        doc.setDrawColor(150);
+        doc.setLineWidth(0.5);
+        doc.line(leftMargin, y - 6, pageWidth - leftMargin, y - 6);
+
+        doc.setFont('Poppins', 'normal');
+
+        // Table rows
         const rows = [];
-        const serviceRows = document.querySelectorAll('#servicesBody tr');
-        serviceRows.forEach(row => {
-          const service = row.querySelector('.service-name input').value.trim();
-          const qty = row.querySelector('.service-qty input').value;
-          const price = parseFloat(row.querySelector('.service-price input').value).toFixed(2);
-          if(service){
-            rows.push({service, qty, price});
+        servicesBody.querySelectorAll('tr').forEach(row => {
+          const serviceName = row.querySelector('.service-name input').value.trim();
+          const qty = row.querySelector('.service-qty input').value.trim();
+          const price = row.querySelector('.service-price input').value.trim();
+
+          if(serviceName) {
+            rows.push({serviceName, qty, price});
           }
         });
 
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'normal');
         rows.forEach(row => {
-          if(y > doc.internal.pageSize.getHeight() - 40){
+          if(y > 270) {
             doc.addPage();
-            y = 40;
+            y = 20;
           }
-          doc.text(row.service, leftMargin, y);
-          doc.text(String(row.qty), pageWidth - leftMargin - 100, y, {align: 'right'});
-          doc.text(`KSh ${row.price}`, pageWidth - leftMargin - 50, y, {align: 'right'});
+          doc.text(row.serviceName, leftMargin, y);
+          doc.text(row.qty, pageWidth / 2 - 15, y);
+          doc.text(`$ ${row.price}`, pageWidth - leftMargin - 50, y, {align: 'right'});
           y += lineHeight;
         });
 
-        y += 10;
         // Total
-        const totalText = totalSection.textContent;
-        doc.setFont(undefined, 'bold');
-        doc.setFontSize(16);
-        doc.text(totalText, pageWidth - leftMargin, y, {align: 'right'});
+        y += lineHeight;
+        doc.setFont('Poppins', 'bold');
+        doc.text(totalSection.textContent, pageWidth - leftMargin, y, {align: 'right'});
 
         doc.save(`Receipt_${receiptNumber || '0000'}.pdf`);
+
+        actions.style.display = 'flex'; // Show buttons again
       });
     });
   })();
