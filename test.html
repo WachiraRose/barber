@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Charles Git Barber Receipt — Access Protected</title>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display&family=Roboto+Mono&display=swap');
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0; padding: 0;
+    background: linear-gradient(135deg, #7e8ff4, #cba4e0);
+    font-family: 'Roboto Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #222;
+  }
+
+  /* Access Screen */
+  #accessScreen {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px 30px 30px 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    max-width: 380px;
+    width: 90vw;
+    text-align: center;
+    position: relative;
+  }
+
+  #accessScreen h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #4a47a3;
+    letter-spacing: 2px;
+    user-select: none;
+    animation: fadeInSlideDown 1s ease forwards;
+  }
+
+  @keyframes fadeInSlideDown {
+    0% {opacity: 0; transform: translateY(-30px);}
+    100% {opacity: 1; transform: translateY(0);}
+  }
+
+  .password-wrapper {
+    position: relative;
+    margin-top: 30px;
+  }
+
+  #password {
+    width: 100%;
+    padding: 14px 45px 14px 15px;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    border: 2px solid #7e8ff4;
+    outline-color: #b991db;
+    font-family: 'Roboto Mono', monospace;
+  }
+
+  .toggle-eye {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 1.3rem;
+    user-select: none;
+    color: #7e8ff4;
+    transition: color 0.3s;
+  }
+  .toggle-eye:hover {
+    color: #cba4e0;
+  }
+
+  #accessBtn {
+    margin-top: 30px;
+    background: #4a47a3;
+    border: none;
+    color: white;
+    padding: 14px 0;
+    width: 100%;
+    border-radius: 10px;
+    font-size: 1.25rem;
+    cursor: pointer;
+    font-family: 'Playfair Display', serif;
+    transition: background 0.3s;
+  }
+  #accessBtn:hover {
+    background: #3b3680;
+  }
+
+  #errorMsg {
+    color: #d94f4f;
+    margin-top: 15px;
+    font-weight: 700;
+    height: 24px;
+    font-family: 'Roboto Mono', monospace;
+  }
+
+  /* Receipt container */
+  #receiptContainer {
+    display: none;
+    background: white;
+    max-width: 760px;
+    width: 95vw;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.1);
+    padding: 30px 40px;
+    font-family: 'Roboto Mono', monospace;
+    color: #222;
+  }
+
+  #receiptHeader {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #cba4e0;
+    padding-bottom: 18px;
+    margin-bottom: 20px;
+    gap: 10px;
+  }
+
+  #shopName {
+    font-family: 'Playfair Display', serif;
+    color: #4a47a3;
+    font-size: 2.2rem;
+    margin: 0;
+    user-select: text;
+    border-bottom: 1px dashed transparent;
+    padding-bottom: 2px;
+    cursor: text;
+  }
+  #shopName:focus {
+    outline: none;
+    border-bottom: 1px dashed #7e8ff4;
+  }
+
+  #shopAddress {
+    flex: 1 1 250px;
+    font-size: 1rem;
+    color: #5e5e8a;
+    user-select: text;
+    border-bottom: 1px dashed transparent;
+    padding-bottom: 2px;
+    cursor: text;
+  }
+  #shopAddress:focus {
+    outline: none;
+    border-bottom: 1px dashed #7e8ff4;
+  }
+
+  #shopContact {
+    font-size: 0.9rem;
+    color: #5e5e8a;
+    user-select: text;
+    border-bottom: 1px dashed transparent;
+    padding-bottom: 2px;
+    cursor: text;
+  }
+  #shopContact:focus {
+    outline: none;
+    border-bottom: 1px dashed #7e8ff4;
+  }
+
+  /* Receipt Meta (Receipt #, Date, Cashier) */
+  #receiptMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 24px;
+    font-size: 1rem;
+  }
+  #receiptMeta label {
+    font-weight: 600;
+    color: #4a47a3;
+    user-select: none;
+    min-width: 110px;
+  }
+  #receiptMeta input {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1.5px solid #cba4e0;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1rem;
+    width: 150px;
+    transition: border-color 0.3s;
+  }
+  #receiptMeta input:focus {
+    border-color: #7e8ff4;
+    outline: none;
+  }
+
+  /* Client info */
+  #clientInfo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  #clientInfo input {
+    flex: 1 1 200px;
+    padding: 10px 15px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1.5px solid #cba4e0;
+    transition: border-color 0.3s;
+  }
+  #clientInfo input:focus {
+    border-color: #7e8ff4;
+    outline: none;
+  }
+
+  /* Table styling */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 18px;
+    font-size: 1rem;
+  }
+  table th, table td {
+    border-bottom: 1px solid #cba4e0;
+    padding: 12px 8px;
+    text-align: left;
+    vertical-align: middle;
+  }
+  table th {
+    background: #7e8ff4;
+    color: white;
+    font-weight: 600;
+  }
+
+  table td input[type="text"],
+  table td input[type="number"] {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1.5px solid #cba4e0;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+  }
+  table td input[type="text"]:focus,
+  table td input[type="number"]:focus {
+    border-color: #7e8ff4;
+    outline: none;
+  }
+
+  .remove-row-btn {
+    background: transparent;
+    border: none;
+    color: #d94f4f;
+    font-size: 1.3rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .remove-row-btn:hover {
+    color: #a33535;
+  }
+
+  /* Add service button */
+  #addServiceBtn {
+    background: #4a47a3;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-bottom: 22px;
+  }
+  #addServiceBtn:hover {
+    background: #3b3680;
+  }
+
+  /* Total Section */
+  #totalSection {
+    text-align: right;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #4a47a3;
+    margin-bottom: 10px;
+    user-select: none;
+  }
+
+  /* Print and PDF Buttons */
+  #actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+  }
+
+  #actions button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    font-family: 'Playfair Display', serif;
+    border-radius: 10px;
+    background: #4a47a3;
+    color: white;
+    transition: background 0.3s;
+  }
+  #actions button:hover {
+    background: #3b3680;
+  }
+
+  /* Print Styles for thermal receipt */
+  @media print {
+    body {
+      background: white !important;
+      color: black !important;
+      font-family: monospace !important;
+      font-size: 12pt !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    #accessScreen, #addServiceBtn, #actions, #errorMsg {
+      display: none !important;
+    }
+    #receiptContainer {
+      max-width: 320px !important;
+      width: 320px !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      padding: 15px !important;
+      margin: 0 auto !important;
+      color: black !important;
+    }
+    #receiptHeader {
+      border-bottom: 1px dashed black !important;
+      margin-bottom: 10px !important;
+      flex-wrap: nowrap !important;
+      gap: 4px !important;
+    }
+    #shopName {
+      color: black !important;
+      border-bottom: none !important;
+      font-size: 1.8rem !important;
+      user-select: text !important;
+      cursor: default !important;
+    }
+    #shopAddress, #shopContact {
+      display: none !important;
+    }
+    #receiptMeta {
+      font-size: 14pt !important;
+      gap: 10px !important;
+    }
+    #receiptMeta label {
+      color: black !important;
+      user-select: text !important;
+    }
+    #receiptMeta input {
+      font-family: monospace !important;
+      border: none !important;
+      font-size: 12pt !important;
+      width: auto !important;
+      background: transparent !important;
+      pointer-events: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    #clientInfo input {
+      border: none !important;
+      font-size: 12pt !important;
+      pointer-events: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    table, table th, table td {
+      border-color: black !important;
+      font-size: 12pt !important;
+    }
+    table td input {
+      border: none !important;
+      font-size: 12pt !important;
+      pointer-events: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      width: auto !important;
+    }
+    #totalSection {
+      font-size: 18pt !important;
+      font-weight: 900 !important;
+      color: black !important;
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 560px) {
+    #receiptHeader {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    #receiptMeta {
+      flex-direction: column;
+      gap: 12px;
+    }
+    #clientInfo {
+      flex-direction: column;
+    }
+    #receiptMeta label {
+      min-width: auto;
+    }
+    #receiptMeta input {
+      width: 100%;
+    }
+    #clientInfo input {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Access Screen -->
+<div id="accessScreen" role="dialog" aria-modal="true" aria-labelledby="accessTitle" tabindex="-1">
+  <h1 id="accessTitle">Charles Git</h1>
+  <form id="accessForm" aria-describedby="errorMsg">
+    <div class="password-wrapper">
+      <input
+        type="password"
+        id="password"
+        aria-label="Enter password"
+        placeholder="Enter password"
+        autocomplete="current-password"
+        required
+      />
+      <span class="toggle-eye" id="toggleEye" role="button" tabindex="0" aria-label="Toggle password visibility">👁️</span>
+    </div>
+    <button type="submit" id="accessBtn">Access Receipt</button>
+    <p id="errorMsg" role="alert" aria-live="assertive"></p>
+  </form>
+</div>
+
+<!-- Receipt Container -->
+<div id="receiptContainer" role="main" aria-label="Barber receipt editor">
+  <header id="receiptHeader">
+    <h1 id="shopName" contenteditable="true" aria-label="Shop name">Charles Git Barber Shop</h1>
+    <p id="shopAddress" contenteditable="true" aria-label="Shop address">456 Lilac Lane, Lilac City, LC</p>
+    <p id="shopContact" contenteditable="true" aria-label="Shop contact info">Phone: (555) 123-4567 | Email: barber@charlesgit.com</p>
+  </header>
+
+  <section id="receiptMeta" aria-label="Receipt details">
+    <label for="receiptNumber">Receipt #:
+      <input type="text" id="receiptNumber" value="0001" autocomplete="off" />
+    </label>
+    <label for="receiptDate">Date:
+      <input type="date" id="receiptDate" />
+    </label>
+    <label for="cashierName">Cashier:
+      <input type="text" id="cashierName" value="Alex" autocomplete="off" />
+    </label>
+  </section>
+
+  <section id="clientInfo" aria-label="Client information">
+    <input
+      type="text"
+      id="clientName"
+      placeholder="Client Name"
+      autocomplete="off"
+      required
+      aria-required="true"
+      aria-describedby="clientNameHelp"
+    />
+    <input
+      type="tel"
+      id="clientPhone"
+      placeholder="Phone Number"
+      autocomplete="tel"
+      pattern="^\+?[\d\s\-().]{7,}$"
+      aria-describedby="clientPhoneHelp"
+      title="Enter a valid phone number"
+    />
+    <input
+      type="email"
+      id="clientEmail"
+      placeholder="Client Email"
+      autocomplete="email"
+      aria-describedby="clientEmailHelp"
+      title="Enter a valid email address"
+    />
+  </section>
+
+  <table id="servicesTable" aria-label="Services and pricing">
+    <thead>
+      <tr>
+        <th scope="col">Service</th>
+        <th scope="col">Price ($)</th>
+        <th scope="col">Qty</th>
+        <th scope="col">Total</th>
+        <th scope="col" aria-label="Remove service"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows added dynamically -->
+    </tbody>
+  </table>
+
+  <button id="addServiceBtn" aria-label="Add new service row">+ Add Service</button>
+
+  <div id="totalSection" aria-live="polite" aria-atomic="true">
+    Total: $<span id="totalAmount">0.00</span>
+  </div>
+
+  <div id="actions">
+    <button id="printBtn">Print Receipt</button>
+    <button id="downloadBtn">Download PDF</button>
+  </div>
+</div>
+
+<script>
+  const correctPassword = "kutchee";
+  const accessScreen = document.getElementById("accessScreen");
+  const receiptContainer = document.getElementById("receiptContainer");
+  const passwordInput = document.getElementById("password");
+  const toggleEye = document.getElementById("toggleEye");
+  const errorMsg = document.getElementById("errorMsg");
+
+  // Toggle password visibility
+  toggleEye.addEventListener("click", () => {
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+      toggleEye.textContent = "🙈";
+    } else {
+      passwordInput.type = "password";
+      toggleEye.textContent = "👁️";
+    }
+    passwordInput.focus();
+  });
+  toggleEye.addEventListener("keydown", (e) => {
+    if(e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleEye.click();
+    }
+  });
+
+  // Form submit and password check
+  document.getElementById("accessForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const pass = passwordInput.value.trim();
+    if(pass === correctPassword){
+      errorMsg.textContent = "";
+      accessScreen.style.display = "none";
+      receiptContainer.style.display = "block";
+      addServiceRow(); // add initial service row
+      updateTotal();
+      document.getElementById("clientName").focus();
+
+      // Set today's date as default
+      if(!document.getElementById("receiptDate").value){
+        const today = new Date().toISOString().slice(0,10);
+        document.getElementById("receiptDate").value = today;
+      }
+    } else {
+      errorMsg.textContent = "Wrong password. Please try again.";
+      passwordInput.focus();
+    }
+  });
+
+  // Add service row function
+  const servicesTableBody = document.querySelector("#servicesTable tbody");
+  const addServiceBtn = document.getElementById("addServiceBtn");
+
+  function addServiceRow(service = "", price = 0, qty = 1) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><input type="text" class="serviceName" placeholder="Service description" value="${service}" required autocomplete="off" /></td>
+      <td><input type="number" class="servicePrice" min="0" step="0.01" value="${price.toFixed(2)}" required autocomplete="off" /></td>
+      <td><input type="number" class="serviceQty" min="1" step="1" value="${qty}" required autocomplete="off" /></td>
+      <td class="serviceTotal" aria-live="polite">$0.00</td>
+      <td><button class="remove-row-btn" aria-label="Remove this service row">✕</button></td>
+    `;
+
+    servicesTableBody.appendChild(tr);
+
+    // Update total on input change
+    tr.querySelectorAll("input").forEach(input => {
+      input.addEventListener("input", updateTotal);
+    });
+
+    // Remove row
+    tr.querySelector(".remove-row-btn").addEventListener("click", () => {
+      tr.remove();
+      updateTotal();
+      if(servicesTableBody.children.length === 0) addServiceRow();
+    });
+
+    updateTotal();
+  }
+
+  addServiceBtn.addEventListener("click", e => {
+    e.preventDefault();
+    addServiceRow();
+  });
+
+  // Update total
+  function updateTotal() {
+    let total = 0;
+    servicesTableBody.querySelectorAll("tr").forEach(row => {
+      const price = parseFloat(row.querySelector(".servicePrice").value) || 0;
+      const qty = parseInt(row.querySelector(".serviceQty").value) || 0;
+      const lineTotal = price * qty;
+      row.querySelector(".serviceTotal").textContent = `$${lineTotal.toFixed(2)}`;
+      total += lineTotal;
+    });
+    document.getElementById("totalAmount").textContent = total.toFixed(2);
+  }
+
+  // Print functionality
+  document.getElementById("printBtn").addEventListener("click", () => {
+    window.print();
+  });
+
+  // Download PDF (using print dialog)
+  document.getElementById("downloadBtn").addEventListener("click", () => {
+    window.print();
+  });
+
+  // Placeholders vanish on focus, come back if empty on blur for client info
+  ["clientName", "clientPhone", "clientEmail"].forEach(id => {
+    const input = document.getElementById(id);
+    input.addEventListener("focus", () => input.placeholder = "");
+    input.addEventListener("blur", () => {
+      if (!input.value) {
+        if (id === "clientName") input.placeholder = "Client Name";
+        else if (id === "clientPhone") input.placeholder = "Phone Number";
+        else if (id === "clientEmail") input.placeholder = "Client Email";
+      }
+    });
+  });
+
+</script>
+
+</body>
+</html>
