@@ -162,7 +162,6 @@
     border-bottom: 2px dashed #7e7cc2;
   }
 
-  #shopAddress,
   #shopContact {
     font-size: 1rem;
     color: #6e649f;
@@ -174,14 +173,9 @@
     line-height: 1.3;
     margin: 0;
   }
-  #shopAddress:focus,
   #shopContact:focus {
     outline: none;
     border-bottom: 2px dashed #7e7cc2;
-  }
-  /* reduce spacing between address and phone */
-  #shopAddress {
-    margin-bottom: 4px;
   }
 
   /* Receipt Meta (Receipt #, Date, Cashier) */
@@ -362,7 +356,7 @@
     #shopName {
       font-size: 2.1rem;
     }
-    #shopAddress, #shopContact {
+    #shopContact {
       font-size: 0.95rem;
       margin-bottom: 2px;
     }
@@ -526,361 +520,335 @@
     color: transparent;
   }
 
-  /* Hide print/download buttons when printing */
+  /* PRINT STYLES */
   @media print {
-    #actions {
+    body {
+      background: white !important;
+      color: #000 !important;
+      font-family: 'Roboto Mono', monospace !important;
+    }
+    #accessScreen, #addServiceBtn, #actions {
+      display: none !important;
+    }
+    #receiptContainer {
+      box-shadow: none !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    input, button {
+      border: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+      color: #000 !important;
+      font-weight: normal !important;
+      font-size: 12pt !important;
+      pointer-events: none !important;
+      -webkit-print-color-adjust: exact;
+    }
+    input:focus {
+      outline: none !important;
+    }
+    /* Show inputs as plain text */
+    input::placeholder {
+      color: transparent !important;
+    }
+    td input {
+      border: none !important;
+      background: transparent !important;
+      font-weight: normal !important;
+      font-size: 12pt !important;
+      color: #000 !important;
+      pointer-events: none !important;
+      width: auto !important;
+    }
+    .remove-row-btn {
       display: none !important;
     }
   }
+
 </style>
 </head>
-<body>
 
-<!-- ACCESS PASSWORD -->
+<body>
+<!-- Access Screen -->
 <div id="accessScreen" role="dialog" aria-modal="true" aria-labelledby="accessTitle">
-  <h1 id="accessTitle">Enter Access Code</h1>
+  <h1 id="accessTitle" tabindex="0">Charles Git </h1>
   <div class="password-wrapper">
     <input
       type="password"
       id="password"
-      aria-label="Access Password"
+      name="password"
+      autocomplete="current-password"
       placeholder="Enter Password"
-      autocomplete="off"
-      spellcheck="false"
+      aria-label="Password"
     />
-    <span class="toggle-eye" id="togglePassword" role="button" aria-label="Toggle password visibility" tabindex="0">👁️</span>
+    <span id="togglePassword" class="toggle-eye" aria-label="Toggle Password Visibility" role="button" tabindex="0">&#128065;</span>
   </div>
-  <button id="accessBtn" aria-describedby="errorMsg">Submit</button>
-  <div id="errorMsg" role="alert" aria-live="assertive"></div>
+  <button id="accessBtn" type="button" aria-describedby="errorMsg">Access</button>
+  <p id="errorMsg" aria-live="assertive" role="alert"></p>
 </div>
 
-<!-- RECEIPT -->
-<div id="receiptContainer" role="main" tabindex="-1" aria-label="Receipt details">
+<!-- Receipt Container -->
+<section id="receiptContainer" tabindex="0" aria-label="Barber Receipt">
   <header id="receiptHeader">
-    <h2 id="shopName" contenteditable="true" aria-label="Shop Name" spellcheck="false">Charles Git Barber</h2>
-    <!--p id="shopAddress" contenteditable="true" aria-label="Shop Address" spellcheck="false">Nairobi, Kenya</p-->
-    <p id="shopContact" contenteditable="true" aria-label="Shop Contact" spellcheck="false">Phone: +1 314 365 7077| Email: royalpettyerrandsrv@gmail.com</p>
+    <h2 id="shopName" contenteditable="true" aria-label="Shop Name" role="textbox" spellcheck="false" tabindex="0">Charles Git Barber Shop</h2>
+    <p id="shopContact" contenteditable="true" aria-label="Shop Contact Info" role="textbox" spellcheck="false" tabindex="0">
+      | Phone: (314)3657077 | Email: royalpettyerrandsrv@gmail.com
+    </p>
   </header>
 
-  <section id="receiptMeta">
+  <div id="receiptMeta" role="form" aria-label="Receipt metadata">
     <label for="receiptNumber">Receipt #</label>
-    <input id="receiptNumber" type="text" placeholder="0000" aria-describedby="receiptNumberDesc" />
-    <span id="receiptNumberDesc" class="sr-only">Enter receipt number</span>
+    <input type="text" id="receiptNumber" name="receiptNumber" aria-required="true" placeholder="e.g. 00432" />
 
     <label for="receiptDate">Date</label>
-    <input id="receiptDate" type="date" aria-describedby="receiptDateDesc" />
-    <span id="receiptDateDesc" class="sr-only">Select receipt date</span>
+    <input type="date" id="receiptDate" name="receiptDate" aria-required="true" />
 
     <label for="cashierName">Cashier</label>
-    <input id="cashierName" type="text" placeholder="Cashier name" aria-describedby="cashierNameDesc" />
-    <span id="cashierNameDesc" class="sr-only">Enter cashier name</span>
-  </section>
+    <input type="text" id="cashierName" name="cashierName" aria-required="true" placeholder="Cashier name" />
+  </div>
 
-  <section id="clientInfo">
-    <input id="clientName" type="text" placeholder="Client Name" aria-label="Client Name" />
-    <input id="clientEmail" type="email" placeholder="Client Email" aria-label="Client Email" />
-    <input id="clientPhone" type="tel" placeholder="Client Phone" aria-label="Client Phone" />
-  </section>
+  <div id="clientInfo" role="form" aria-label="Client information">
+    <input type="text" id="clientName" name="clientName" placeholder="Client Name" aria-required="true" />
+    <input type="email" id="clientEmail" name="clientEmail" placeholder="Client Email" aria-required="true" />
+    <input type="tel" id="clientPhone" name="clientPhone" placeholder="Client Phone" aria-required="true" pattern="[0-9]{9,15}" />
+  </div>
 
-  <table aria-label="Services table" role="table">
+  <table aria-label="Services provided">
     <thead>
       <tr>
         <th scope="col">Service</th>
         <th scope="col">Quantity</th>
         <th scope="col">Price ($)</th>
-        <th scope="col">Remove</th>
+        <th scope="col" aria-label="Remove service row"></th>
       </tr>
     </thead>
-    <tbody id="servicesBody" role="rowgroup">
-      <!-- Service rows go here -->
+    <tbody id="servicesTableBody">
+      <tr>
+        <td class="service-name"><input type="text" class="service-input" placeholder="Service name" aria-label="Service name" /></td>
+        <td class="service-qty"><input type="number" class="qty-input" min="1" value="1" aria-label="Service quantity" /></td>
+        <td class="service-price"><input type="number" class="price-input" min="0" step="0.01" value="0.00" aria-label="Service price" /></td>
+        <td class="remove-btn"><button type="button" class="remove-row-btn" aria-label="Remove this service row">&times;</button></td>
+      </tr>
     </tbody>
   </table>
 
-  <button id="addServiceBtn" aria-label="Add new service">+ Add Service</button>
+  <button id="addServiceBtn" type="button" aria-label="Add new service row">Add Service</button>
 
-  <div id="totalSection" aria-live="polite" aria-atomic="true">Total: $ 0.00</div>
+  <div id="totalSection" aria-live="polite" aria-atomic="true">Total: $0.00</div>
 
   <div id="actions">
-    <button id="printBtn" type="button">Print</button>
-    <button id="downloadPdfBtn" type="button">Download PDF</button>
+    <button id="printBtn" type="button" aria-label="Print receipt">Print Receipt</button>
+    <!--button id="downloadPdfBtn" type="button" aria-label="Download receipt as PDF">Download PDF</button-->
   </div>
-</div>
+</section>
 
 <script>
-  (() => {
-    const correctPassword = 'kutchee';  // Access password
+  const accessScreen = document.getElementById('accessScreen');
+  const receiptContainer = document.getElementById('receiptContainer');
+  const passwordInput = document.getElementById('password');
+  const accessBtn = document.getElementById('accessBtn');
+  const errorMsg = document.getElementById('errorMsg');
+  const togglePassword = document.getElementById('togglePassword');
 
-    const accessScreen = document.getElementById('accessScreen');
-    const passwordInput = document.getElementById('password');
-    const togglePassword = document.getElementById('togglePassword');
-    const accessBtn = document.getElementById('accessBtn');
-    const errorMsg = document.getElementById('errorMsg');
-
-    const receiptContainer = document.getElementById('receiptContainer');
-
-    const receiptNumberInput = document.getElementById('receiptNumber');
-    const receiptDateInput = document.getElementById('receiptDate');
-    const cashierNameInput = document.getElementById('cashierName');
-
-    const clientNameInput = document.getElementById('clientName');
-    const clientEmailInput = document.getElementById('clientEmail');
-    const clientPhoneInput = document.getElementById('clientPhone');
-
-    const servicesBody = document.getElementById('servicesBody');
-    const addServiceBtn = document.getElementById('addServiceBtn');
-    const totalSection = document.getElementById('totalSection');
-
-    const printBtn = document.getElementById('printBtn');
-    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-    const actions = document.getElementById('actions');
-
-    // Toggle password visibility
-    togglePassword.addEventListener('click', () => {
-      if(passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        togglePassword.textContent = '🙈';
-      } else {
-        passwordInput.type = 'password';
-        togglePassword.textContent = '👁️';
-      }
-      passwordInput.focus();
-    });
-    togglePassword.addEventListener('keydown', (e) => {
-      if(e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        togglePassword.click();
-      }
-    });
-
-    // Access button click or enter key on password
-    function checkPassword() {
-      if(passwordInput.value.trim() === correctPassword) {
-        accessScreen.style.display = 'none';
-        receiptContainer.style.display = 'block';
-        receiptContainer.focus();
-        errorMsg.textContent = '';
-        passwordInput.value = '';
-        // Set receipt date to today by default
-        if(!receiptDateInput.value) {
-          const today = new Date().toISOString().split('T')[0];
-          receiptDateInput.value = today;
-        }
-      } else {
-        errorMsg.textContent = 'Incorrect password. Please try again.';
-        passwordInput.select();
-      }
+  // Toggle password visibility
+  togglePassword.addEventListener('click', () => {
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      togglePassword.textContent = '🙈';
+      togglePassword.setAttribute('aria-label', 'Hide Password');
+    } else {
+      passwordInput.type = 'password';
+      togglePassword.textContent = '👁️';
+      togglePassword.setAttribute('aria-label', 'Show Password');
     }
+    passwordInput.focus();
+  });
+  togglePassword.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      togglePassword.click();
+    }
+  });
 
-    accessBtn.addEventListener('click', checkPassword);
-    passwordInput.addEventListener('keydown', e => {
-      if(e.key === 'Enter') {
-        e.preventDefault();
-        checkPassword();
-      }
+  // Password check
+  accessBtn.addEventListener('click', () => {
+    const entered = passwordInput.value.trim();
+    const correctPassword = 'kutchee';
+    if (entered === correctPassword) {
+      accessScreen.style.display = 'none';
+      receiptContainer.style.display = 'block';
+      receiptContainer.focus();
+      errorMsg.textContent = '';
+    } else {
+      errorMsg.textContent = 'Incorrect password. Please try again.';
+      passwordInput.value = '';
+      passwordInput.focus();
+    }
+  });
+
+  passwordInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      accessBtn.click();
+    }
+  });
+
+  // Services table functionality
+  const addServiceBtn = document.getElementById('addServiceBtn');
+  const servicesTableBody = document.getElementById('servicesTableBody');
+  const totalSection = document.getElementById('totalSection');
+
+  function updateTotal() {
+    let total = 0;
+    const rows = servicesTableBody.querySelectorAll('tr');
+    rows.forEach(row => {
+      const qtyInput = row.querySelector('.qty-input');
+      const priceInput = row.querySelector('.price-input');
+
+      const qty = parseInt(qtyInput.value) || 0;
+      const price = parseFloat(priceInput.value) || 0;
+
+      total += qty * price;
     });
 
-    // Add a new service row
-    function addServiceRow(name = '', qty = 0, price = 0) {
-      const tr = document.createElement('tr');
+    totalSection.textContent = 'Total: $' + total.toFixed(2);
+  }
 
-      // Service name cell
-      const serviceTd = document.createElement('td');
-      serviceTd.classList.add('service-name');
-      const serviceInput = document.createElement('input');
-      serviceInput.type = 'text';
-      serviceInput.placeholder = 'Service';
-      serviceInput.value = name;
-      serviceInput.setAttribute('aria-label', 'Service name');
-      serviceInput.spellcheck = false;
-      serviceTd.appendChild(serviceInput);
-
-      // Quantity cell
-      const qtyTd = document.createElement('td');
-      qtyTd.classList.add('service-qty');
-      const qtyInput = document.createElement('input');
-      qtyInput.type = 'number';
-      qtyInput.min = '0';
-      qtyInput.step = 'any';
-      qtyInput.value = qty;
-      qtyInput.setAttribute('aria-label', 'Quantity');
-      qtyTd.appendChild(qtyInput);
-
-      // Price cell
-      const priceTd = document.createElement('td');
-      priceTd.classList.add('service-price');
-      const priceInput = document.createElement('input');
-      priceInput.type = 'number';
-      priceInput.min = '0';
-      priceInput.step = 'any';
-      priceInput.value = price;
-      priceInput.setAttribute('aria-label', 'Price in dollars');
-      priceTd.appendChild(priceInput);
-
-      // Remove button cell
-      const removeTd = document.createElement('td');
-      removeTd.classList.add('remove-btn');
-      const removeBtn = document.createElement('button');
-      removeBtn.type = 'button';
-      removeBtn.classList.add('remove-row-btn');
-      removeBtn.setAttribute('aria-label', 'Remove service');
-      removeBtn.textContent = '×';
-      removeBtn.addEventListener('click', () => {
-        tr.remove();
-        updateTotal();
-      });
-      removeTd.appendChild(removeBtn);
-
-      tr.appendChild(serviceTd);
-      tr.appendChild(qtyTd);
-      tr.appendChild(priceTd);
-      tr.appendChild(removeTd);
-
-      // Update total on input changes
-      [qtyInput, priceInput].forEach(input => {
-        input.addEventListener('input', () => {
-          updateTotal();
-        });
-      });
-      serviceInput.addEventListener('input', () => {
-        // Just for better UX; no total update needed here
-      });
-
-      servicesBody.appendChild(tr);
+  // Event delegation for inputs and remove buttons in services table
+  servicesTableBody.addEventListener('input', (e) => {
+    if (
+      e.target.classList.contains('qty-input') ||
+      e.target.classList.contains('price-input')
+    ) {
       updateTotal();
     }
+  });
 
-    addServiceBtn.addEventListener('click', () => {
-      addServiceRow('', 0, 0);
-    });
-
-    // Initialize with one empty row
-    addServiceRow();
-
-    // Calculate and update total price
-    function updateTotal() {
-      let total = 0;
-      servicesBody.querySelectorAll('tr').forEach(row => {
-        const qtyInput = row.querySelector('.service-qty input');
-        const priceInput = row.querySelector('.service-price input');
-
-        let qty = parseFloat(qtyInput.value);
-        let price = parseFloat(priceInput.value);
-
-        if (isNaN(qty) || qty < 0) qty = 0;
-        if (isNaN(price) || price < 0) price = 0;
-
-        total += qty * price;
-      });
-      totalSection.textContent = `Total: $ ${total.toFixed(2)}`;
+  servicesTableBody.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-row-btn')) {
+      const row = e.target.closest('tr');
+      if (servicesTableBody.querySelectorAll('tr').length > 1) {
+        row.remove();
+        updateTotal();
+      } else {
+        alert('You must have at least one service.');
+      }
     }
+  });
 
-    // Print button action
-    printBtn.addEventListener('click', () => {
-      window.print();
+  addServiceBtn.addEventListener('click', () => {
+    const newRow = document.createElement('tr');
+
+    newRow.innerHTML = `
+      <td class="service-name"><input type="text" class="service-input" placeholder="Service name" aria-label="Service name" /></td>
+      <td class="service-qty"><input type="number" class="qty-input" min="1" value="1" aria-label="Service quantity" /></td>
+      <td class="service-price"><input type="number" class="price-input" min="0" step="0.01" value="0.00" aria-label="Service price" /></td>
+      <td class="remove-btn"><button type="button" class="remove-row-btn" aria-label="Remove this service row">&times;</button></td>
+    `;
+
+    servicesTableBody.appendChild(newRow);
+    updateTotal();
+  });
+
+  // Initialize total on page show
+  updateTotal();
+
+  // Print function
+  document.getElementById('printBtn').addEventListener('click', () => {
+    window.print();
+  });
+
+  // PDF download
+  document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
+    // Dynamically import jspdf
+    const { jsPDF } = await import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+    const doc = new jsPDF();
+
+    // Build the receipt text from inputs
+    const shopName = document.getElementById('shopName').textContent.trim();
+    const shopContact = document.getElementById('shopContact').textContent.trim();
+
+    const receiptNumber = document.getElementById('receiptNumber').value.trim() || 'N/A';
+    const receiptDate = document.getElementById('receiptDate').value || 'N/A';
+    const cashierName = document.getElementById('cashierName').value.trim() || 'N/A';
+
+    const clientName = document.getElementById('clientName').value.trim() || 'N/A';
+    const clientEmail = document.getElementById('clientEmail').value.trim() || 'N/A';
+    const clientPhone = document.getElementById('clientPhone').value.trim() || 'N/A';
+
+    let y = 15;
+    const lineHeight = 8;
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    doc.setFont('Roboto Mono');
+    doc.setFontSize(22);
+    doc.text(shopName, pageWidth / 2, y, { align: 'center' });
+    y += lineHeight;
+    doc.setFontSize(11);
+    doc.text(shopContact, pageWidth / 2, y, { align: 'center' });
+    y += lineHeight * 2;
+
+    doc.setFontSize(14);
+    doc.text(`Receipt #: ${receiptNumber}`, 14, y);
+    y += lineHeight;
+    doc.text(`Date: ${receiptDate}`, 14, y);
+    y += lineHeight;
+    doc.text(`Cashier: ${cashierName}`, 14, y);
+    y += lineHeight * 2;
+
+    doc.setFontSize(16);
+    doc.text('Client Information:', 14, y);
+    y += lineHeight;
+    doc.setFontSize(12);
+    doc.text(`Name: ${clientName}`, 14, y);
+    y += lineHeight;
+    doc.text(`Email: ${clientEmail}`, 14, y);
+    y += lineHeight;
+    doc.text(`Phone: ${clientPhone}`, 14, y);
+    y += lineHeight * 2;
+
+    doc.setFontSize(16);
+    doc.text('Services Provided:', 14, y);
+    y += lineHeight;
+
+    // Table Headers
+    doc.setFontSize(12);
+    doc.text('Service', 14, y);
+    doc.text('Qty', 100, y);
+    doc.text('Price', 130, y, { align: 'right' });
+    doc.text('Total', 180, y, { align: 'right' });
+    y += lineHeight;
+
+    doc.setDrawColor(0);
+    doc.line(14, y - 4, 196, y - 4);
+
+    // Services
+    const rows = servicesTableBody.querySelectorAll('tr');
+    let grandTotal = 0;
+    rows.forEach(row => {
+      const service = row.querySelector('.service-input').value.trim() || 'N/A';
+      const qty = parseInt(row.querySelector('.qty-input').value) || 0;
+      const price = parseFloat(row.querySelector('.price-input').value) || 0;
+      const total = qty * price;
+      grandTotal += total;
+
+      doc.text(service, 14, y);
+      doc.text(qty.toString(), 100, y);
+      doc.text(`$${price.toFixed(2)}`, 130, y, { align: 'right' });
+      doc.text(`$${total.toFixed(2)}`, 180, y, { align: 'right' });
+      y += lineHeight;
     });
 
-    // Download PDF button action
-    downloadPdfBtn.addEventListener('click', () => {
-      actions.style.display = 'none'; // Hide buttons during PDF generation
+    y += lineHeight;
+    doc.setFontSize(14);
+    doc.setTextColor(90, 71, 139);
+    doc.text(`Grand Total: $${grandTotal.toFixed(2)}`, 180, y, { align: 'right' });
 
-      import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js').then(({ jsPDF }) => {
-        const doc = new jsPDF.jsPDF();
-
-        const leftMargin = 15;
-        let y = 20;
-        const lineHeight = 10;
-        const pageWidth = doc.internal.pageSize.getWidth();
-
-        const shopName = document.getElementById('shopName').textContent.trim();
-        const shopAddress = document.getElementById('shopAddress').textContent.trim();
-        const shopContact = document.getElementById('shopContact').textContent.trim();
-        const receiptNumber = receiptNumberInput.value.trim();
-        const receiptDate = receiptDateInput.value;
-        const cashierName = cashierNameInput.value.trim();
-
-        const clientName = clientNameInput.value.trim();
-        const clientEmail = clientEmailInput.value.trim();
-        const clientPhone = clientPhoneInput.value.trim();
-
-        // Header
-        doc.setFont('Poppins', 'bold');
-        doc.setFontSize(20);
-        doc.text(shopName, leftMargin, y);
-        y += lineHeight;
-        doc.setFontSize(12);
-        doc.setFont('Poppins', 'normal');
-        doc.text(shopAddress, leftMargin, y);
-        y += lineHeight;
-        doc.text(shopContact, leftMargin, y);
-        y += lineHeight * 1.5;
-
-        // Receipt meta
-        doc.setFontSize(14);
-        doc.setFont('Poppins', 'bold');
-        if(receiptNumber) doc.text(`Receipt #: ${receiptNumber}`, leftMargin, y);
-        if(receiptDate) doc.text(`Date: ${receiptDate}`, pageWidth / 2 + 10, y);
-        if(cashierName) doc.text(`Cashier: ${cashierName}`, leftMargin, y + lineHeight);
-        y += lineHeight * 2.5;
-
-        // Client info
-        doc.setFontSize(12);
-        doc.setFont('Poppins', 'normal');
-        if(clientName) doc.text(`Client Name: ${clientName}`, leftMargin, y);
-        y += lineHeight;
-        if(clientEmail) doc.text(`Client Email: ${clientEmail}`, leftMargin, y);
-        y += lineHeight;
-        if(clientPhone) doc.text(`Client Phone: ${clientPhone}`, leftMargin, y);
-        y += lineHeight * 1.5;
-
-        // Table header
-        doc.setFont('Poppins', 'bold');
-        doc.text('Service', leftMargin, y);
-        doc.text('Qty', pageWidth / 2 - 15, y);
-        doc.text('Price ($)', pageWidth - leftMargin - 50, y, {align: 'right'});
-        y += lineHeight;
-
-        doc.setDrawColor(150);
-        doc.setLineWidth(0.5);
-        doc.line(leftMargin, y - 6, pageWidth - leftMargin, y - 6);
-
-        doc.setFont('Poppins', 'normal');
-
-        // Table rows
-        const rows = [];
-        servicesBody.querySelectorAll('tr').forEach(row => {
-          const serviceName = row.querySelector('.service-name input').value.trim();
-          const qty = row.querySelector('.service-qty input').value.trim();
-          const price = row.querySelector('.service-price input').value.trim();
-
-          if(serviceName) {
-            rows.push({serviceName, qty, price});
-          }
-        });
-
-        rows.forEach(row => {
-          if(y > 270) {
-            doc.addPage();
-            y = 20;
-          }
-          doc.text(row.serviceName, leftMargin, y);
-          doc.text(row.qty, pageWidth / 2 - 15, y);
-          doc.text(`$ ${row.price}`, pageWidth - leftMargin - 50, y, {align: 'right'});
-          y += lineHeight;
-        });
-
-        // Total
-        y += lineHeight;
-        doc.setFont('Poppins', 'bold');
-        doc.text(totalSection.textContent, pageWidth - leftMargin, y, {align: 'right'});
-
-        doc.save(`Receipt_${receiptNumber || '0000'}.pdf`);
-
-        actions.style.display = 'flex'; // Show buttons again
-      });
-    });
-  })();
+    doc.save(`Receipt_${receiptNumber || 'unknown'}.pdf`);
+  });
 </script>
 
 </body>
 </html>
-
